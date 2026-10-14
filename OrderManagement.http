@@ -1,0 +1,76 @@
+@host = http://localhost:5080
+@adminToken = paste-admin-jwt
+@customerToken = paste-customer-jwt
+
+### Register a customer. The role field is ignored; the account is always a Customer.
+POST {{host}}/api/auth/register
+Content-Type: application/json
+
+{
+  "name": "Ada Lovelace",
+  "email": "ada@example.com",
+  "password": "Password123",
+  "role": "Admin"
+}
+
+### Login
+POST {{host}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "ada@example.com",
+  "password": "Password123"
+}
+
+### Current customer
+GET {{host}}/api/customers/me
+Authorization: Bearer {{customerToken}}
+
+### Create a product (admin). Inventory is an absolute starting quantity.
+POST {{host}}/api/products
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "name": "Mechanical keyboard",
+  "description": "Compact keyboard",
+  "price": 79.90,
+  "availableQuantity": 10
+}
+
+### List products
+GET {{host}}/api/products?page=1&pageSize=20&search=key&sortBy=name&sortDirection=asc
+Authorization: Bearer {{customerToken}}
+
+### Set an absolute available quantity. Version must match the last read.
+PATCH {{host}}/api/products/1/inventory
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "availableQuantity": 12,
+  "version": 0
+}
+
+### Place an order. Prices, totals, customer, and status are calculated by the server.
+POST {{host}}/api/orders
+Authorization: Bearer {{customerToken}}
+Content-Type: application/json
+
+{
+  "items": [
+    { "productId": 1, "quantity": 2 }
+  ]
+}
+
+### Confirm, ship, or cancel
+PATCH {{host}}/api/orders/1/confirm
+Authorization: Bearer {{adminToken}}
+
+###
+PATCH {{host}}/api/orders/1/ship
+Authorization: Bearer {{adminToken}}
+
+###
+PATCH {{host}}/api/orders/1/cancel
+Authorization: Bearer {{customerToken}}
